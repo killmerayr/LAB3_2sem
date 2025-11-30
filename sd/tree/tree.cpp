@@ -201,3 +201,50 @@ void AVL::print_inorder() const { inorder(root, [](int v){ cout << v << " "; });
 void AVL::print_preorder() const { preorder(root, [](int v){ cout << v << " "; }); cout << endl; }
 void AVL::print_postorder() const { postorder(root, [](int v){ cout << v << " "; }); cout << endl; }
 void AVL::print_lvlorder() const { lvlorder(root, [](int v){ cout << v << " "; }); cout << endl; }
+
+// --------- Бинарная сериализация ---------
+void AVL::serialize(std::ostream& out) const {
+    std::function<void(AVLNode*, std::ostream&)> serialize_node = [&](AVLNode* n, std::ostream& os) {
+        if (!n) {
+            int marker = -999999;
+            os.write(reinterpret_cast<const char*>(&marker), sizeof(int));
+            return;
+        }
+        os.write(reinterpret_cast<const char*>(&n->val), sizeof(int));
+        os.write(reinterpret_cast<const char*>(&n->height), sizeof(int));
+        serialize_node(n->left, os);
+        serialize_node(n->right, os);
+    };
+    serialize_node(root, out);
+}
+
+// --------- Бинарная десериализация ---------
+void AVL::deserialize(std::istream& in) {
+    // Очищаем дерево
+    std::function<void(AVLNode*)> del = [&](AVLNode* n) {
+        if (!n) return;
+        del(n->left);
+        del(n->right);
+        delete n;
+    };
+    del(root);
+    root = nullptr;
+    
+    std::function<AVLNode*(AVLNode*, std::istream&)> deserialize_node = 
+        [&](AVLNode* parent, std::istream& is) -> AVLNode* {
+        int val;
+        is.read(reinterpret_cast<char*>(&val), sizeof(int));
+        
+        if (val == -999999) return nullptr;
+        
+        AVLNode* n = new AVLNode(val, parent);
+        is.read(reinterpret_cast<char*>(&n->height), sizeof(int));
+        
+        n->left = deserialize_node(n, is);
+        n->right = deserialize_node(n, is);
+        
+        return n;
+    };
+    
+    root = deserialize_node(nullptr, in);
+}

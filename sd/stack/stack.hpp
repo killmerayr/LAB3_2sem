@@ -1,5 +1,8 @@
 #pragma once
 #include <string>
+#include <ostream>
+#include <istream>
+#include <vector>
 
 class Stack {
 private:
@@ -20,4 +23,8 @@ public:
     void pop();                          // удалить верхний элемент
     std::string top() const;             // получить верхний элемент
     void print() const;                  // вывести стек
+    
+    // Текстовая сериализация и десериализация
+    void serialize(std::ostream& out) const;
+    void deserialize(std::istream& in);
 };

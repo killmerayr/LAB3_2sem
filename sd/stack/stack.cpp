@@ -54,3 +54,48 @@ void Stack::print() const {
     cout << endl;
 
 }
+
+// Текстовая сериализация
+void Stack::serialize(std::ostream& out) const {
+    // Подсчитаем размер
+    int size = 0;
+    SNode* cur = top_node;
+    while (cur) {
+        size++;
+        cur = cur->next;
+    }
+    
+    out << size << "\n";
+    
+    // Сохраняем от верхушки вниз
+    cur = top_node;
+    while (cur) {
+        out << cur->data << "\n";
+        cur = cur->next;
+    }
+}
+
+// Текстовая десериализация
+void Stack::deserialize(std::istream& in) {
+    int size = 0;
+    in >> size;
+    in.ignore(); // пропустить перевод строки
+    
+    // Очищаем стек
+    while (!is_empty()) {
+        pop();
+    }
+    
+    // Загружаем элементы в обратном порядке (чтобы восстановить структуру)
+    std::vector<std::string> temp;
+    for (int i = 0; i < size; ++i) {
+        std::string val;
+        std::getline(in, val);
+        temp.push_back(val);
+    }
+    
+    // Добавляем в обратном порядке для восстановления стека
+    for (int i = size - 1; i >= 0; --i) {
+        push(temp[i]);
+    }
+}

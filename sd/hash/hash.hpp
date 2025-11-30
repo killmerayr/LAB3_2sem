@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <ostream>
+#include <istream>
 using namespace std;
 
 class HashTable {
@@ -105,6 +107,43 @@ public:
                 cout << table[i].first << " ";
         }
         cout << endl;
+    }
+    
+    // Бинарная сериализация
+    void serialize(std::ostream& out) const {
+        out.write(reinterpret_cast<const char*>(&size), sizeof(int));
+        for (int i = 0; i < capacity; i++) {
+            if (table[i].second == Occupied) {
+                int len = table[i].first.length();
+                out.write(reinterpret_cast<const char*>(&len), sizeof(int));
+                out.write(table[i].first.c_str(), len);
+            }
+        }
+    }
+    
+    // Бинарная десериализация
+    void deserialize(std::istream& in) {
+        int count = 0;
+        in.read(reinterpret_cast<char*>(&count), sizeof(int));
+        
+        // Очищаем таблицу
+        table.assign(capacity, {"", Empty});
+        size = 0;
+        deleted_count = 0;
+        
+        // Загружаем элементы
+        for (int i = 0; i < count; ++i) {
+            int len = 0;
+            in.read(reinterpret_cast<char*>(&len), sizeof(int));
+            
+            char* buffer = new char[len + 1];
+            in.read(buffer, len);
+            buffer[len] = '\0';
+            
+            string key(buffer);
+            delete[] buffer;
+            Add(key);
+        }
     }
 };
 

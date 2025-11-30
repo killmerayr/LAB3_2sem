@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <ostream>
+#include <istream>
 
 class Mass {
 private:
@@ -21,4 +23,8 @@ public:
     int get_size() const;
     void print() const;
     void read(); // считывание с консоли
+    
+    // Бинарная сериализация и десериализация
+    void serialize(std::ostream& out) const;
+    void deserialize(std::istream& in);
 };

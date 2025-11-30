@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <ostream>
+#include <istream>
 
 class DoublyList {
 private:
@@ -33,4 +35,8 @@ public:
     DNode* get_at(int index) const;
     void print_forward() const;
     void print_backward() const;
+    
+    // Текстовая сериализация и десериализация
+    void serialize(std::ostream& out) const;
+    void deserialize(std::istream& in);
 };

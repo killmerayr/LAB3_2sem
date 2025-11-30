@@ -96,3 +96,39 @@ void Mass::read() {
         push_back(val);
     }
 }
+
+// Бинарная сериализация
+void Mass::serialize(std::ostream& out) const {
+    out.write(reinterpret_cast<const char*>(&size), sizeof(int));
+    for (int i = 0; i < size; ++i) {
+        int len = data[i].length();
+        out.write(reinterpret_cast<const char*>(&len), sizeof(int));
+        out.write(data[i].c_str(), len);
+    }
+}
+
+// Бинарная десериализация
+void Mass::deserialize(std::istream& in) {
+    int new_size = 0;
+    in.read(reinterpret_cast<char*>(&new_size), sizeof(int));
+    
+    // Очищаем текущие данные
+    delete[] data;
+    data = nullptr;
+    size = 0;
+    capacity = 0;
+    
+    // Загружаем элементы
+    for (int i = 0; i < new_size; ++i) {
+        int len = 0;
+        in.read(reinterpret_cast<char*>(&len), sizeof(int));
+        
+        char* buffer = new char[len + 1];
+        in.read(buffer, len);
+        buffer[len] = '\0';
+        
+        string val(buffer);
+        delete[] buffer;
+        push_back(val);
+    }
+}

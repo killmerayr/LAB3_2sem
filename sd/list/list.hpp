@@ -36,6 +36,10 @@ public:
     void del_head();
     void del_after(const std::string& key);
     void del_before(const std::string& key);
+    
+    // Текстовая сериализация и десериализация
+    void serialize(std::ostream& out) const;
+    void deserialize(std::istream& in);
 };
 
 #endif

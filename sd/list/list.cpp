@@ -215,3 +215,38 @@ void List::del_before(const string& key) {
     prevPrev->next = cur;
     delete prev;
 }
+
+// Текстовая сериализация
+void List::serialize(std::ostream& out) const {
+    int size = get_size();
+    out << size << "\n";
+    
+    LNode* cur = head;
+    while (cur) {
+        out << cur->data << "\n";
+        cur = cur->next;
+    }
+}
+
+// Текстовая десериализация
+void List::deserialize(std::istream& in) {
+    int size = 0;
+    in >> size;
+    in.ignore(); // пропустить перевод строки
+    
+    // Очищаем список
+    LNode* cur = head;
+    while (cur) {
+        LNode* tmp = cur;
+        cur = cur->next;
+        delete tmp;
+    }
+    head = tail = nullptr;
+    
+    // Загружаем элементы
+    for (int i = 0; i < size; ++i) {
+        std::string val;
+        std::getline(in, val);
+        push_back(val);
+    }
+}

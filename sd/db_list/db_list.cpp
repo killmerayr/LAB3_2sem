@@ -202,3 +202,38 @@ void DoublyList::print_backward() const {
     }
     cout << endl;
 }
+
+// Текстовая сериализация
+void DoublyList::serialize(std::ostream& out) const {
+    int size = get_size();
+    out << size << "\n";
+    
+    DNode* cur = head;
+    while (cur) {
+        out << cur->data << "\n";
+        cur = cur->next;
+    }
+}
+
+// Текстовая десериализация
+void DoublyList::deserialize(std::istream& in) {
+    int size = 0;
+    in >> size;
+    in.ignore(); // пропустить перевод строки
+    
+    // Очищаем список
+    DNode* cur = head;
+    while (cur) {
+        DNode* tmp = cur;
+        cur = cur->next;
+        delete tmp;
+    }
+    head = tail = nullptr;
+    
+    // Загружаем элементы
+    for (int i = 0; i < size; ++i) {
+        std::string val;
+        std::getline(in, val);
+        push_back(val);
+    }
+}

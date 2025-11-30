@@ -60,3 +60,42 @@ void Queue::print() const {
     }
     cout << endl;
 }
+
+// Текстовая сериализация
+void Queue::serialize(std::ostream& out) const {
+    // Подсчитаем размер
+    int size = 0;
+    QNode* cur = first;
+    while (cur) {
+        size++;
+        cur = cur->next;
+    }
+    
+    out << size << "\n";
+    
+    // Сохраняем от начала к концу
+    cur = first;
+    while (cur) {
+        out << cur->val << "\n";
+        cur = cur->next;
+    }
+}
+
+// Текстовая десериализация
+void Queue::deserialize(std::istream& in) {
+    int size = 0;
+    in >> size;
+    in.ignore(); // пропустить перевод строки
+    
+    // Очищаем очередь
+    while (!is_empty()) {
+        pop();
+    }
+    
+    // Загружаем элементы в прямом порядке
+    for (int i = 0; i < size; ++i) {
+        std::string val;
+        std::getline(in, val);
+        push(val);
+    }
+}

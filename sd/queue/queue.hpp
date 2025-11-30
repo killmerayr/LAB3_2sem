@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <ostream>
+#include <istream>
 
 class Queue {
 private:
@@ -21,4 +23,8 @@ public:
     void pop();                      // удалить из начала
     std::string front() const;       // получить первый элемент
     void print() const;              // вывести все элементы
+    
+    // Текстовая сериализация и десериализация
+    void serialize(std::ostream& out) const;
+    void deserialize(std::istream& in);
 };

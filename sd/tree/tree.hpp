@@ -2,6 +2,9 @@
 #include <iostream>
 #include <queue>
 #include <algorithm>
+#include <ostream>
+#include <istream>
+#include <functional>
 using namespace std;
 
 class AVLNode {
@@ -55,4 +58,8 @@ public:
     void print_lvlorder() const;
 
     AVLNode* getRoot() const { return root; }
+    
+    // Бинарная сериализация и десериализация
+    void serialize(std::ostream& out) const;
+    void deserialize(std::istream& in);
 };
