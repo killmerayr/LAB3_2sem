@@ -1,6 +1,7 @@
 #include <boost/test/unit_test.hpp>
 #include <sstream>
 #include <iostream>
+#include <chrono>
 #include "../../sd/stack/stack.hpp"
 
 BOOST_AUTO_TEST_SUITE(StackSuite)
@@ -477,6 +478,42 @@ BOOST_AUTO_TEST_CASE(SingleElementStack)
     BOOST_TEST(s.top() == "new_single");
     s.pop();
     BOOST_TEST(s.is_empty() == true);
+}
+
+// ===== БЕНЧМАРКИ =====
+BOOST_AUTO_TEST_CASE(BENCHMARK_Push, * boost::unit_test::label("benchmark"))
+{
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    Stack s;
+    for (int i = 0; i < 50000; ++i) {
+        s.push("element_" + std::to_string(i));
+    }
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    
+    BOOST_TEST_MESSAGE("push x50000: " << duration.count() << " ms");
+}
+
+BOOST_AUTO_TEST_CASE(BENCHMARK_PushPop, * boost::unit_test::label("benchmark"))
+{
+    Stack s;
+    for (int i = 0; i < 10000; ++i) {
+        s.push("elem_" + std::to_string(i));
+    }
+    
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    for (int i = 0; i < 5000; ++i) {
+        s.pop();
+        s.push("new_" + std::to_string(i));
+    }
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    
+    BOOST_TEST_MESSAGE("push/pop x5000: " << duration.count() << " ms");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

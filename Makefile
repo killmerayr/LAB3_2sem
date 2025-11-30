@@ -29,13 +29,13 @@ CATCH_MAIN := tests/catch2/catch_main.cpp
 CATCH_TESTS := $(filter-out $(CATCH_MAIN), $(shell find tests/catch2 -type f -name "*.cpp"))
 CATCH_SRCS := $(shell find sd -type f -name "*.cpp")
 
-.PHONY: all lint build run coverage boost boost_coverage catch catch_coverage clean
+.PHONY: all lint build run coverage gtest gtest_coverage boost boost_coverage catch catch_coverage clean
 
 # --------------------
 # Основные цели
 # --------------------
 all:
-	@echo "Цели: lint, build, run, coverage, boost, boost_coverage, catch, catch_coverage"
+	@echo "Цели: lint, gtest, gtest_coverage, boost, boost_coverage, catch, catch_coverage"
 
 # --------------------
 # Линтинг
@@ -52,20 +52,26 @@ lint:
 # --------------------
 # Google Test
 # --------------------
-build:
+gtest:
+	@echo "🧪 Компиляция Google Test тестов..."
 	$(CXX) $(CXXFLAGS) $(GTEST_INCLUDE) $(SRC) $(GTEST_TESTS) -o runGTests $(GTEST_LIBS)
+	@echo "🚀 Запуск Google Test тестов..."
+	./runGTests
+	@echo "\n⏱️  Запуск бенчмарков..."
+	@./runGTests --gtest_filter='*BENCHMARK*' || true
 
-run:
+gtest_coverage:
+	@echo "🧪 Компиляция и запуск Google Test тестов с покрытием..."
+	$(CXX) $(CXXFLAGS) $(GTEST_INCLUDE) $(SRC) $(GTEST_TESTS) -o runGTests $(GTEST_LIBS)
 	LLVM_PROFILE_FILE=$(PWD)/coverage.profraw ./runGTests
-
-coverage: build run
-	llvm-profdata merge -sparse $(PWD)/coverage.profraw -o coverage.profdata
+	@echo "📝 Генерация отчёта покрытия..."
+	llvm-profdata merge -sparse $(PWD)/coverage.profdata -o coverage.profdata
 	llvm-cov show ./runGTests \
 		-instr-profile=coverage.profdata \
 		-format=html \
 		-output-dir=coverage_report \
 		-Xdemangler=c++filt
-	@echo "Открыть отчёт: open coverage_report/index.html"
+	@echo "✅ Google Test coverage готов. Открыть: open coverage_report/index.html"
 
 # --------------------
 # Boost Test
@@ -75,6 +81,8 @@ boost:
 	$(CXX) $(CXXFLAGS) $(BOOST_INCLUDE) $(SRC) $(BOOST_TESTS) -o runBoostTests $(BOOST_LIB)
 	@echo "🚀 Запуск Boost тестов..."
 	./runBoostTests
+	@echo "\n⏱️  Запуск бенчмарков..."
+	@./runBoostTests --run_test='*/BENCHMARK*' --log_level=message || true
 
 boost_coverage:
 	@echo "🧪 Компиляция и запуск Boost тестов с покрытием..."
@@ -100,6 +108,8 @@ catch:
 		-o runCatchTests
 	@echo "🚀 Запуск Catch2 тестов..."
 	./runCatchTests
+	@echo "\n⏱️  Запуск бенчмарков..."
+	@./runCatchTests "[benchmark]" -s || true
 
 catch_coverage:
 	@echo "🧪 Компиляция и запуск Catch2 тестов с покрытием..."

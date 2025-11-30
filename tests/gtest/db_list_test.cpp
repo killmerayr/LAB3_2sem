@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "../sd/db_list/db_list.hpp"
+#include <chrono>
 
 class DBListTest : public ::testing::Test {
 protected:
@@ -313,4 +314,44 @@ TEST_F(DBListTest, EdgeCases) {
         list->del_head();
     }
     EXPECT_TRUE(list->is_empty());
+}
+
+// ===== BENCHMARKS =====
+TEST(DBListBench, BENCHMARK_DBList_PushBack) {
+    auto start = std::chrono::high_resolution_clock::now();
+    DoublyList l;
+    for (int i = 0; i < 10000; ++i) l.push_back("elem_" + std::to_string(i));
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "\npush_back x10000: " << ms << " ms\n";
+}
+
+TEST(DBListBench, BENCHMARK_DBList_Find) {
+    DoublyList l;
+    for (int i = 0; i < 2000; ++i) l.push_back("elem_" + std::to_string(i));
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 50000; ++i) l.find("elem_1000");
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "\nfind x50000: " << ms << " ms\n";
+}
+
+// ===== BENCHMARKS =====
+TEST(DBListBench, BENCHMARK_PushBack) {
+    auto start = std::chrono::high_resolution_clock::now();
+    DoublyList l;
+    for (int i = 0; i < 10000; ++i) l.push_back("elem_" + std::to_string(i));
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "\npush_back x10000: " << ms << " ms\n";
+}
+
+TEST(DBListBench, BENCHMARK_Find) {
+    DoublyList l;
+    for (int i = 0; i < 2000; ++i) l.push_back("elem_" + std::to_string(i));
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 50000; ++i) l.find("elem_1000");
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "\nfind x50000: " << ms << " ms\n";
 }

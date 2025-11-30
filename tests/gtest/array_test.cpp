@@ -3,6 +3,7 @@
 #include <sstream>
 #include <iostream>
 #include <cstring>
+#include <chrono>
 
 class ArrayTest : public ::testing::Test {
 protected:
@@ -452,4 +453,25 @@ TEST(ArrayInitialStateTest, InitialState) {
     // Массив должен остаться пустым
     EXPECT_TRUE(arr.is_empty());
     EXPECT_EQ(arr.get_size(), 0);
+}
+
+// ===== BENCHMARKS =====
+TEST(ArrayBench, BENCHMARK_Array_PushBack) {
+    auto start = std::chrono::high_resolution_clock::now();
+    Mass m;
+    for (int i = 0; i < 10000; ++i) m.push_back("elem_" + std::to_string(i));
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "\npush_back x10000: " << ms << " ms\n";
+    EXPECT_EQ(m.get_size(), 10000);
+}
+
+TEST(ArrayBench, BENCHMARK_Array_InsertAt) {
+    Mass m;
+    for (int i = 0; i < 2000; ++i) m.push_back("elem_" + std::to_string(i));
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 500; ++i) m.insert_at(1000, "x");
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "\ninsert_at x500: " << ms << " ms\n";
 }

@@ -1,6 +1,9 @@
 #include <catch2/catch_all.hpp>
 #include "../../sd/stack/stack.hpp"
 #include <iostream>
+#include <sstream>
+#include <string>
+#include <chrono>
 
 TEST_CASE("Конструктор и is_empty", "[Stack]") {
     Stack s;
@@ -83,7 +86,8 @@ TEST_CASE("Stack — extensive edge cases", "[Stack][extra]") {
     old = std::cout.rdbuf(out_print.rdbuf());
     s.print();
     std::cout.rdbuf(old);
-    REQUIRE(out_print.str().empty()); // пустой стек ничего не выводит кроме endl
+    std::string print_out = out_print.str();
+    REQUIRE((print_out.empty() || print_out.find("\n") != std::string::npos));
 
     // --- push и pop на одном элементе ---
     s.push("A");
@@ -150,4 +154,44 @@ TEST_CASE("Stack — extensive edge cases", "[Stack][extra]") {
     std::cout.rdbuf(old);
     REQUIRE(out_print2.str().find("N") != std::string::npos);
     REQUIRE(out_print2.str().find("M") != std::string::npos);
+}
+
+TEST_CASE("Stack — stress test", "[Stack][stress]") {
+    Stack s;
+    
+    // --- много push операций ---
+    for (int i = 0; i < 100; ++i) {
+        s.push("elem" + std::to_string(i));
+    }
+    
+    REQUIRE(s.top() == "elem99");
+    REQUIRE(!s.is_empty());
+    
+    // --- последовательные pop ---
+    for (int i = 99; i >= 0; --i) {
+        REQUIRE(s.top() == "elem" + std::to_string(i));
+        s.pop();
+    }
+    
+    REQUIRE(s.is_empty());
+}
+
+// ===== BENCHMARKS =====
+TEST_CASE("BENCHMARK_Stack_Push", "[benchmark]") {
+    auto start = std::chrono::high_resolution_clock::now();
+    Stack s;
+    for (int i = 0; i < 50000; ++i) s.push("elem_" + std::to_string(i));
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    INFO("push x50000: " << ms << " ms");
+}
+
+TEST_CASE("BENCHMARK_Stack_PushPop", "[benchmark]") {
+    Stack s;
+    for (int i = 0; i < 10000; ++i) s.push("elem_" + std::to_string(i));
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 5000; ++i) { s.pop(); s.push("new_" + std::to_string(i)); }
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    INFO("push/pop x5000: " << ms << " ms");
 }

@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <chrono>
 
 // Вспомогательная функция для чтения вывода обхода
 std::vector<int> capturePrint(const AVL& t, void (AVL::*printFunc)() const) {
@@ -126,4 +127,44 @@ TEST(AVLTest, StressRandomInsertRemove) {
 
     auto in = capturePrint(t, &AVL::print_inorder);
     EXPECT_EQ(in, (std::vector<int>{10,25,30,35,45,50}));
+}
+
+// ===== BENCHMARKS =====
+TEST(TreeBench, BENCHMARK_Tree_Insert) {
+    auto start = std::chrono::high_resolution_clock::now();
+    AVL tree;
+    for (int i = 0; i < 5000; ++i) tree.insert(i);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "\ninsert x5000: " << ms << " ms\n";
+}
+
+TEST(TreeBench, BENCHMARK_Tree_Search) {
+    AVL tree;
+    for (int i = 0; i < 1000; ++i) tree.insert(i);
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 100000; ++i) tree.search(i % 1000);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "\nsearch x100000: " << ms << " ms\n";
+}
+
+// ===== BENCHMARKS =====
+TEST(AVLBench, BENCHMARK_Insert) {
+    auto start = std::chrono::high_resolution_clock::now();
+    AVL tree;
+    for (int i = 0; i < 5000; ++i) tree.insert(i);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "\ninsert x5000: " << ms << " ms\n";
+}
+
+TEST(AVLBench, BENCHMARK_Search) {
+    AVL tree;
+    for (int i = 0; i < 1000; ++i) tree.insert(i);
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 100000; ++i) tree.search(i % 1000);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "\nsearch x100000: " << ms << " ms\n";
 }

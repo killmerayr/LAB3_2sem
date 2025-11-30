@@ -1,5 +1,9 @@
 #include <catch2/catch_all.hpp>
 #include "../../sd/db_list/db_list.hpp"
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <chrono>
 
 TEST_CASE("Конструктор и is_empty", "[DoublyList]") {
     DoublyList l;
@@ -187,4 +191,105 @@ TEST_CASE("DoublyList — edge cases for full coverage", "[DoublyList][extra]") 
 
     // --- find на пустом списке ---
     REQUIRE(l.find("A") == nullptr);
+}
+
+TEST_CASE("DoublyList — print methods", "[DoublyList][extra2]") {
+    DoublyList l;
+    
+    // --- print на пустом списке ---
+    std::stringstream out_empty;
+    std::streambuf* old = std::cout.rdbuf(out_empty.rdbuf());
+    l.print_forward();
+    l.print_backward();
+    std::cout.rdbuf(old);
+    // не проверяем содержимое, только что не падает
+    
+    // --- print на непустом списке ---
+    l.push_back("A");
+    l.push_back("B");
+    l.push_back("C");
+    
+    std::stringstream out_forward;
+    old = std::cout.rdbuf(out_forward.rdbuf());
+    l.print_forward();
+    std::cout.rdbuf(old);
+    std::string forward_str = out_forward.str();
+    REQUIRE(forward_str.find("A") != std::string::npos);
+    REQUIRE(forward_str.find("B") != std::string::npos);
+    REQUIRE(forward_str.find("C") != std::string::npos);
+    
+    std::stringstream out_backward;
+    old = std::cout.rdbuf(out_backward.rdbuf());
+    l.print_backward();
+    std::cout.rdbuf(old);
+    std::string backward_str = out_backward.str();
+    REQUIRE(backward_str.find("C") != std::string::npos);
+}
+
+TEST_CASE("DoublyList — stress test", "[DoublyList][stress]") {
+    DoublyList l;
+    
+    // --- много push операций ---
+    for (int i = 0; i < 50; ++i) {
+        l.push_back("elem" + std::to_string(i));
+    }
+    REQUIRE(l.get_size() == 50);
+    
+    // --- поиск всех элементов ---
+    for (int i = 0; i < 50; ++i) {
+        auto node = l.find("elem" + std::to_string(i));
+        REQUIRE(node != nullptr);
+    }
+    
+    // --- удаление половины ---
+    for (int i = 0; i < 25; ++i) {
+        l.del("elem" + std::to_string(i));
+    }
+    REQUIRE(l.get_size() == 25);
+    
+    // --- проверка оставшихся ---
+    for (int i = 25; i < 50; ++i) {
+        auto node = l.find("elem" + std::to_string(i));
+        REQUIRE(node != nullptr);
+    }
+}
+
+TEST_CASE("DoublyList — bidirectional operations", "[DoublyList][extra3]") {
+    DoublyList l;
+    l.push_back("A");
+    l.push_back("B");
+    l.push_back("C");
+    
+    // --- проверка get_at и bidirectional access ---
+    REQUIRE(l.get_at(0)->data == "A");
+    REQUIRE(l.get_at(1)->data == "B");
+    REQUIRE(l.get_at(2)->data == "C");
+    REQUIRE(l.get_at(-1) == nullptr);
+    REQUIRE(l.get_at(10) == nullptr);
+    
+    // --- проверка next/prev указателей через del_after/del_before ---
+    l.del_after("A");  // удалит B
+    REQUIRE(l.get_size() == 2);
+    REQUIRE(l.get_at(0)->data == "A");
+    REQUIRE(l.get_at(1)->data == "C");
+}
+
+// ===== BENCHMARKS =====
+TEST_CASE("BENCHMARK_DBList_PushBack", "[benchmark]") {
+    auto start = std::chrono::high_resolution_clock::now();
+    DoublyList l;
+    for (int i = 0; i < 10000; ++i) l.push_back("elem_" + std::to_string(i));
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    INFO("push_back x10000: " << ms << " ms");
+}
+
+TEST_CASE("BENCHMARK_DBList_Find", "[benchmark]") {
+    DoublyList l;
+    for (int i = 0; i < 2000; ++i) l.push_back("elem_" + std::to_string(i));
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 50000; ++i) l.find("elem_1000");
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    INFO("find x50000: " << ms << " ms");
 }

@@ -1,6 +1,9 @@
 #include <catch2/catch_all.hpp>
 #include "../../sd/queue/queue.hpp"
 #include <iostream>
+#include <sstream>
+#include <string>
+#include <chrono>
 
 TEST_CASE("Конструктор и is_empty", "[Queue]") {
     Queue q;
@@ -153,7 +156,7 @@ TEST_CASE("Queue — extensive edge cases", "[Queue][extra2]") {
     q.push("F");
     REQUIRE(q.front() == "E");
 
-    // --- pop одного элемента оставляет последний ---
+    // --- pop одного элемента оставляет следующий ---
     q.pop();
     REQUIRE(q.front() == "F");
 
@@ -183,4 +186,44 @@ TEST_CASE("Queue — extensive edge cases", "[Queue][extra2]") {
     std::cout.rdbuf(old);
     REQUIRE(out_print2.str().find("M") != std::string::npos);
     REQUIRE(out_print2.str().find("N") != std::string::npos);
+}
+
+TEST_CASE("Queue — stress test", "[Queue][stress]") {
+    Queue q;
+    
+    // --- много push операций ---
+    for (int i = 0; i < 100; ++i) {
+        q.push("elem" + std::to_string(i));
+    }
+    
+    REQUIRE(q.front() == "elem0");
+    REQUIRE(!q.is_empty());
+    
+    // --- последовательные pop ---
+    for (int i = 0; i < 100; ++i) {
+        REQUIRE(q.front() == "elem" + std::to_string(i));
+        q.pop();
+    }
+    
+    REQUIRE(q.is_empty());
+}
+
+// ===== BENCHMARKS =====
+TEST_CASE("BENCHMARK_Queue_Push", "[benchmark]") {
+    auto start = std::chrono::high_resolution_clock::now();
+    Queue q;
+    for (int i = 0; i < 50000; ++i) q.push("elem_" + std::to_string(i));
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    INFO("push x50000: " << ms << " ms");
+}
+
+TEST_CASE("BENCHMARK_Queue_PushPop", "[benchmark]") {
+    Queue q;
+    for (int i = 0; i < 10000; ++i) q.push("elem_" + std::to_string(i));
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 5000; ++i) { q.pop(); q.push("new_" + std::to_string(i)); }
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    INFO("push/pop x5000: " << ms << " ms");
 }

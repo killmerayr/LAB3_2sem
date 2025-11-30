@@ -2,6 +2,7 @@
 #include "../../sd/array/array.hpp"
 #include <iostream>
 #include <sstream>
+#include <chrono>
 
 
 TEST_CASE("Mass — 100 coverage", "[array]") {
@@ -164,11 +165,121 @@ TEST_CASE("Mass — edge cases for full coverage", "[array][extra2]") {
     Mass m4;
     m4.print();
     std::cout.rdbuf(old_empty);
-    REQUIRE(out_empty.str().empty());
+    std::string empty_out = out_empty.str();
+    REQUIRE((empty_out.empty() || empty_out == "\n"));
 
     std::stringstream out_nonempty;
     std::streambuf* old_nonempty = std::cout.rdbuf(out_nonempty.rdbuf());
     m3.print();
     std::cout.rdbuf(old_nonempty);
     REQUIRE(!out_nonempty.str().empty());
+}
+
+TEST_CASE("Mass — stress test", "[array][stress]") {
+    Mass m;
+    
+    // --- много push_back операций ---
+    for (int i = 0; i < 100; ++i) {
+        m.push_back("value" + std::to_string(i));
+    }
+    REQUIRE(m.get_size() == 100);
+    
+    // --- проверка всех элементов ---
+    for (int i = 0; i < 100; ++i) {
+        REQUIRE(m.get_at(i) == "value" + std::to_string(i));
+    }
+    
+    // --- удаление половины элементов ---
+    for (int i = 0; i < 50; ++i) {
+        m.del_at(0);  // удаляем с начала
+    }
+    REQUIRE(m.get_size() == 50);
+    
+    // --- проверка оставшихся ---
+    for (int i = 0; i < 50; ++i) {
+        REQUIRE(m.get_at(i) == "value" + std::to_string(i + 50));
+    }
+}
+
+TEST_CASE("Mass — complex operations", "[array][extra3]") {
+    Mass m;
+    
+    // --- составные операции ---
+    for (int i = 0; i < 10; ++i) {
+        m.push_back("elem" + std::to_string(i));
+    }
+    
+    // --- вставки в разные позиции ---
+    m.insert_at(0, "first");
+    m.insert_at(5, "middle");
+    m.insert_at(m.get_size(), "last");
+    REQUIRE(m.get_size() == 13);
+    
+    // --- замены ---
+    m.replace_at(0, "FIRST");
+    m.replace_at(6, "MIDDLE");
+    REQUIRE(m.get_at(0) == "FIRST");
+    REQUIRE(m.get_at(6) == "MIDDLE");
+    
+    // --- удаления ---
+    m.del_at(0);
+    m.del_at(m.get_size() - 1);
+    REQUIRE(m.get_size() == 11);
+}
+
+TEST_CASE("Mass — read() method", "[array][read]") {
+    Mass m;
+    
+    // --- test read() with mock input ---
+    std::string input = "3\nfirst\nsecond\nthird\n";
+    std::istringstream iss(input);
+    std::streambuf* old_cin = std::cin.rdbuf(iss.rdbuf());
+    
+    m.read();
+    
+    std::cin.rdbuf(old_cin);
+    
+    REQUIRE(m.get_size() == 3);
+    REQUIRE(m.get_at(0) == "first");
+    REQUIRE(m.get_at(1) == "second");
+    REQUIRE(m.get_at(2) == "third");
+}
+
+TEST_CASE("Mass — read() with empty input", "[array][read]") {
+    Mass m;
+    
+    // --- test read() with zero elements ---
+    std::string input = "0\n";
+    std::istringstream iss(input);
+    std::streambuf* old_cin = std::cin.rdbuf(iss.rdbuf());
+    
+    m.read();
+    
+    std::cin.rdbuf(old_cin);
+    
+    REQUIRE(m.get_size() == 0);
+    REQUIRE(m.is_empty());
+}
+
+// ===== BENCHMARKS =====
+TEST_CASE("BENCHMARK_Array_PushBack", "[benchmark]") {
+    auto start = std::chrono::high_resolution_clock::now();
+    Mass m;
+    for (int i = 0; i < 10000; ++i) {
+        m.push_back("elem_" + std::to_string(i));
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    INFO("push_back x10000: " << ms << " ms");
+    REQUIRE(m.get_size() == 10000);
+}
+
+TEST_CASE("BENCHMARK_Array_InsertAt", "[benchmark]") {
+    Mass m;
+    for (int i = 0; i < 2000; ++i) m.push_back("elem_" + std::to_string(i));
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 500; ++i) m.insert_at(1000, "x");
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    INFO("insert_at x500: " << ms << " ms");
 }

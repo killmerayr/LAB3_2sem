@@ -2,6 +2,7 @@
 #include "../sd/hash/hash.hpp"
 #include <string>
 #include <vector>
+#include <chrono>
 
 TEST(HashTableTest, BasicAddAndFind) {
     HashTable ht;
@@ -119,4 +120,44 @@ TEST(HashTableTest, RepeatedResizingAndReuse) {
             ht.Remove("A" + std::to_string(cycle) + "_" + std::to_string(i));
     }
     EXPECT_EQ(ht.get_size(), 0);
+}
+
+// ===== BENCHMARKS =====
+TEST(HashBench, BENCHMARK_Hash_Add) {
+    auto start = std::chrono::high_resolution_clock::now();
+    HashTable h;
+    for (int i = 0; i < 10000; ++i) h.Add("key_" + std::to_string(i));
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "\nAdd x10000: " << ms << " ms\n";
+}
+
+TEST(HashBench, BENCHMARK_Hash_Find) {
+    HashTable h;
+    for (int i = 0; i < 1000; ++i) h.Add("key_" + std::to_string(i));
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 100000; ++i) h.Find("key_" + std::to_string(i % 1000));
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "\nFind x100000: " << ms << " ms\n";
+}
+
+// ===== BENCHMARKS =====
+TEST(HashBench, BENCHMARK_Add) {
+    auto start = std::chrono::high_resolution_clock::now();
+    HashTable h;
+    for (int i = 0; i < 10000; ++i) h.Add("key_" + std::to_string(i));
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "\nAdd x10000: " << ms << " ms\n";
+}
+
+TEST(HashBench, BENCHMARK_Find) {
+    HashTable h;
+    for (int i = 0; i < 1000; ++i) h.Add("key_" + std::to_string(i));
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 100000; ++i) h.Find("key_" + std::to_string(i % 1000));
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "\nFind x100000: " << ms << " ms\n";
 }

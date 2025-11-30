@@ -1,5 +1,8 @@
 #include <boost/test/unit_test.hpp>
 #include "../../sd/db_list/db_list.hpp"
+#include <sstream>
+#include <iostream>
+#include <chrono>
 
 BOOST_AUTO_TEST_SUITE(DoubleListSuite)
 
@@ -130,6 +133,42 @@ BOOST_AUTO_TEST_CASE(PrintForwardBackward)
     std::cout.rdbuf(old);
 
     BOOST_TEST(!buf.str().empty());
+}
+
+// ===== БЕНЧМАРКИ =====
+BOOST_AUTO_TEST_CASE(BENCHMARK_PushBack, * boost::unit_test::label("benchmark"))
+{
+    auto start = std::chrono::high_resolution_clock::now();
+    DoublyList l;
+    for (int i = 0; i < 10000; ++i) {
+        l.push_back("elem_" + std::to_string(i));
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    BOOST_TEST_MESSAGE("push_back x10000: " << duration.count() << " ms");
+    BOOST_TEST(l.get_size() == 10000);
+}
+
+BOOST_AUTO_TEST_CASE(BENCHMARK_Find, * boost::unit_test::label("benchmark"))
+{
+    DoublyList l;
+    for (int i = 0; i < 2000; ++i) l.push_back("elem_" + std::to_string(i));
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 50000; ++i) l.find("elem_1000");
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    BOOST_TEST_MESSAGE("find x50000: " << duration.count() << " ms");
+}
+
+BOOST_AUTO_TEST_CASE(BENCHMARK_Delete, * boost::unit_test::label("benchmark"))
+{
+    DoublyList l;
+    for (int i = 0; i < 5000; ++i) l.push_back("elem_" + std::to_string(i));
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 1000; ++i) l.del("elem_" + std::to_string(i));
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    BOOST_TEST_MESSAGE("del x1000: " << duration.count() << " ms");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

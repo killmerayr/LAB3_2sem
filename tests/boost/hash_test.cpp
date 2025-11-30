@@ -5,6 +5,7 @@
 #include <sstream>
 #include <vector>
 #include <string>
+#include <chrono>
 
 BOOST_AUTO_TEST_SUITE(HashSuite)
 
@@ -388,6 +389,61 @@ BOOST_AUTO_TEST_CASE(StabilityAfterManyOperations)
             BOOST_TEST(h.Find(key));
         }
     }
+}
+
+// ===== БЕНЧМАРКИ =====
+BOOST_AUTO_TEST_CASE(BENCHMARK_Add, * boost::unit_test::label("benchmark"))
+{
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    HashTable h;
+    for (int i = 0; i < 10000; ++i) {
+        h.Add("key_" + std::to_string(i));
+    }
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    
+    BOOST_TEST_MESSAGE("Add x10000: " << duration.count() << " ms");
+}
+
+BOOST_AUTO_TEST_CASE(BENCHMARK_Find, * boost::unit_test::label("benchmark"))
+{
+    HashTable h;
+    for (int i = 0; i < 1000; ++i) {
+        h.Add("key_" + std::to_string(i));
+    }
+    
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    for (int i = 0; i < 100000; ++i) {
+        h.Find("key_" + std::to_string(i % 1000));
+    }
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    
+    BOOST_TEST_MESSAGE("Find x100000: " << duration.count() << " ms");
+}
+
+BOOST_AUTO_TEST_CASE(BENCHMARK_AddRemove, * boost::unit_test::label("benchmark"))
+{
+    HashTable h;
+    
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    for (int i = 0; i < 5000; ++i) {
+        h.Add("key_" + std::to_string(i));
+    }
+    
+    for (int i = 0; i < 2500; ++i) {
+        h.Remove("key_" + std::to_string(i));
+    }
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    
+    BOOST_TEST_MESSAGE("Add x5000 + Remove x2500: " << duration.count() << " ms");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

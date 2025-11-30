@@ -1,5 +1,8 @@
 #include <catch2/catch_all.hpp>
 #include "../../sd/tree/tree.hpp"
+#include <sstream>
+#include <string>
+#include <chrono>
 
 TEST_CASE("Конструктор и пустое дерево", "[AVL]") {
     AVL tree;
@@ -258,3 +261,141 @@ TEST_CASE("Деструктор корректно очищает память",
     REQUIRE_NOTHROW(delete t);   // проверка освобождения
 }
 
+TEST_CASE("AVL — comprehensive stress test", "[AVL][stress]") {
+    AVL t;
+    
+    // --- много вставок ---
+    for (int i = 0; i < 100; ++i) {
+        t.insert(i);
+    }
+    REQUIRE(t.getRoot() != nullptr);
+    
+    // --- поиск всех элементов ---
+    for (int i = 0; i < 100; ++i) {
+        REQUIRE(t.search(i) != nullptr);
+    }
+    
+    // --- удаление половины ---
+    for (int i = 0; i < 50; ++i) {
+        t.remove(i);
+    }
+    
+    // --- проверка оставшихся ---
+    for (int i = 50; i < 100; ++i) {
+        REQUIRE(t.search(i) != nullptr);
+    }
+    
+    // --- проверка удалённых ---
+    for (int i = 0; i < 50; ++i) {
+        REQUIRE(t.search(i) == nullptr);
+    }
+}
+
+TEST_CASE("AVL — multiple rotations and removals", "[AVL][extra]") {
+    AVL t;
+    
+    // --- вставляем последовательность, требующую многих ротаций ---
+    for (int i : {50, 30, 70, 20, 40, 60, 80, 10, 25, 35, 65, 75, 85}) {
+        t.insert(i);
+    }
+    
+    REQUIRE(t.search(50) != nullptr);
+    
+    // --- удаляем разные элементы ---
+    t.remove(20);
+    t.remove(70);
+    t.remove(50);
+    
+    // --- проверяем остальные ---
+    for (int i : {30, 40, 60, 80, 10, 25, 35, 65, 75, 85}) {
+        REQUIRE(t.search(i) != nullptr);
+    }
+}
+
+TEST_CASE("AVL — edge case with single rotation", "[AVL][extra2]") {
+    AVL t;
+    
+    // --- LL ротация ---
+    t.insert(3);
+    t.insert(2);
+    t.insert(1);
+    
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+    t.print_inorder();
+    std::cout.rdbuf(old);
+    
+    std::string output = buffer.str();
+    size_t pos1 = output.find("1");
+    size_t pos2 = output.find("2");
+    size_t pos3 = output.find("3");
+    REQUIRE(pos1 < pos2);
+    REQUIRE(pos2 < pos3);
+}
+
+TEST_CASE("AVL — double rotations", "[AVL][extra3]") {
+    AVL t;
+    
+    // --- LR ротация ---
+    t.insert(10);
+    t.insert(5);
+    t.insert(7);
+    
+    REQUIRE(t.search(7) != nullptr);
+    REQUIRE(t.search(5) != nullptr);
+    REQUIRE(t.search(10) != nullptr);
+    
+    // --- RL ротация ---
+    AVL t2;
+    t2.insert(5);
+    t2.insert(10);
+    t2.insert(7);
+    
+    REQUIRE(t2.search(7) != nullptr);
+    REQUIRE(t2.search(10) != nullptr);
+    REQUIRE(t2.search(5) != nullptr);
+}
+
+TEST_CASE("AVL — all traversals with complex tree", "[AVL][extra4]") {
+    AVL t;
+    for (int v : {50, 25, 75, 12, 37, 62, 87, 6, 18, 31, 43, 56, 68, 81, 93}) {
+        t.insert(v);
+    }
+    
+    // --- проверяем что все обходы работают без ошибок ---
+    std::stringstream buffer;
+    std::streambuf* old = std::cout.rdbuf(buffer.rdbuf());
+    
+    t.print_inorder();
+    t.print_preorder();
+    t.print_postorder();
+    t.print_lvlorder();
+    
+    std::cout.rdbuf(old);
+    
+    std::string output = buffer.str();
+    // проверяем что все элементы выведены
+    for (int v : {50, 25, 75, 12, 37}) {
+        REQUIRE(output.find(std::to_string(v)) != std::string::npos);
+    }
+}
+
+// ===== BENCHMARKS =====
+TEST_CASE("BENCHMARK_Tree_Insert", "[benchmark]") {
+    auto start = std::chrono::high_resolution_clock::now();
+    AVL tree;
+    for (int i = 0; i < 5000; ++i) tree.insert(i);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    INFO("insert x5000: " << ms << " ms");
+}
+
+TEST_CASE("BENCHMARK_Tree_Search", "[benchmark]") {
+    AVL tree;
+    for (int i = 0; i < 1000; ++i) tree.insert(i);
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 100000; ++i) tree.search(i % 1000);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    INFO("search x100000: " << ms << " ms");
+}

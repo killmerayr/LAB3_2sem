@@ -1,6 +1,7 @@
 #include <boost/test/unit_test.hpp>
 #include <sstream>
 #include <iostream>
+#include <chrono>
 #include "../../sd/queue/queue.hpp"
 
 BOOST_AUTO_TEST_SUITE(QueueSuite)
@@ -376,6 +377,42 @@ BOOST_AUTO_TEST_CASE(PrintAfterEachOperation)
     BOOST_TEST(!output.empty());
     BOOST_TEST(output.find("a") != std::string::npos);
     BOOST_TEST(output.find("b") != std::string::npos);
+}
+
+// ===== БЕНЧМАРКИ =====
+BOOST_AUTO_TEST_CASE(BENCHMARK_Push, * boost::unit_test::label("benchmark"))
+{
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    Queue q;
+    for (int i = 0; i < 50000; ++i) {
+        q.push("element_" + std::to_string(i));
+    }
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    
+    BOOST_TEST_MESSAGE("push x50000: " << duration.count() << " ms");
+}
+
+BOOST_AUTO_TEST_CASE(BENCHMARK_PushPop, * boost::unit_test::label("benchmark"))
+{
+    Queue q;
+    for (int i = 0; i < 10000; ++i) {
+        q.push("elem_" + std::to_string(i));
+    }
+    
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    for (int i = 0; i < 5000; ++i) {
+        q.pop();
+        q.push("new_" + std::to_string(i));
+    }
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    
+    BOOST_TEST_MESSAGE("push/pop x5000: " << duration.count() << " ms");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

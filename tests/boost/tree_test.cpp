@@ -4,6 +4,7 @@
 #include <vector>
 #include <functional>
 #include <algorithm>
+#include <chrono>
 #include "../../sd/tree/tree.hpp"
 
 BOOST_AUTO_TEST_SUITE(AVLSuite)
@@ -559,6 +560,60 @@ BOOST_AUTO_TEST_CASE(BalanceProperty)
     for (size_t i = 1; i < result2.size(); i++) {
         BOOST_TEST(result2[i-1] < result2[i]);
     }
+}
+
+// ===== БЕНЧМАРКИ =====
+BOOST_AUTO_TEST_CASE(BENCHMARK_Insert, * boost::unit_test::label("benchmark"))
+{
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    AVL tree;
+    for (int i = 0; i < 5000; ++i) {
+        tree.insert(i);
+    }
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    
+    BOOST_TEST_MESSAGE("insert x5000: " << duration.count() << " ms");
+}
+
+BOOST_AUTO_TEST_CASE(BENCHMARK_Search, * boost::unit_test::label("benchmark"))
+{
+    AVL tree;
+    for (int i = 0; i < 1000; ++i) {
+        tree.insert(i);
+    }
+    
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    for (int i = 0; i < 100000; ++i) {
+        tree.search(i % 1000);
+    }
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    
+    BOOST_TEST_MESSAGE("search x100000: " << duration.count() << " ms");
+}
+
+BOOST_AUTO_TEST_CASE(BENCHMARK_InsertRemove, * boost::unit_test::label("benchmark"))
+{
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    AVL tree;
+    for (int i = 0; i < 3000; ++i) {
+        tree.insert(i);
+    }
+    
+    for (int i = 0; i < 1500; ++i) {
+        tree.remove(i);
+    }
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    
+    BOOST_TEST_MESSAGE("insert x3000 + remove x1500: " << duration.count() << " ms");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

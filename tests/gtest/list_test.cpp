@@ -2,6 +2,7 @@
 #include "../sd/list/list.hpp"
 #include <sstream>
 #include <string>
+#include <chrono>
 
 std::string capturePrint(const List& lst) {
     std::stringstream ss;
@@ -138,4 +139,24 @@ TEST(ListTest, EdgeCases) {
     lst.del_before("solo");  // ничего не удаляет
     lst.del("solo");
     EXPECT_TRUE(lst.is_empty());
+}
+
+// ===== BENCHMARKS =====
+TEST(ListBench, BENCHMARK_List_PushBack) {
+    auto start = std::chrono::high_resolution_clock::now();
+    List l;
+    for (int i = 0; i < 10000; ++i) l.push_back("elem_" + std::to_string(i));
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "\npush_back x10000: " << ms << " ms\n";
+}
+
+TEST(ListBench, BENCHMARK_List_Find) {
+    List l;
+    for (int i = 0; i < 1000; ++i) l.push_back("elem_" + std::to_string(i));
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 50000; ++i) l.find("elem_500");
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "\nfind x50000: " << ms << " ms\n";
 }

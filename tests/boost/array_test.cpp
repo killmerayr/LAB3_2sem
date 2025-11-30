@@ -1,6 +1,7 @@
 #include <boost/test/unit_test.hpp>
 #include <sstream>
 #include <iostream>
+#include <chrono>
 #include "../../sd/array/array.hpp"
 
 BOOST_AUTO_TEST_SUITE(ArraySuite)
@@ -366,6 +367,103 @@ BOOST_AUTO_TEST_CASE(MultipleInsertDeleteTest)
     std::streambuf* old = std::cout.rdbuf(buf.rdbuf());
     arr.print();
     std::cout.rdbuf(old);
+}
+
+// ===== БЕНЧМАРКИ =====
+BOOST_AUTO_TEST_CASE(BENCHMARK_PushBack, * boost::unit_test::label("benchmark"))
+{
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    Mass arr;
+    for (int i = 0; i < 10000; ++i) {
+        arr.push_back("element_" + std::to_string(i));
+    }
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    
+    BOOST_TEST_MESSAGE("push_back x10000: " << duration.count() << " ms");
+    BOOST_TEST(arr.get_size() == 10000);
+}
+
+BOOST_AUTO_TEST_CASE(BENCHMARK_InsertAt, * boost::unit_test::label("benchmark"))
+{
+    Mass arr;
+    for (int i = 0; i < 1000; ++i) {
+        arr.push_back("elem_" + std::to_string(i));
+    }
+    
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    for (int i = 0; i < 100; ++i) {
+        arr.insert_at(500, "inserted_" + std::to_string(i));
+    }
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    
+    BOOST_TEST_MESSAGE("insert_at x100 (middle): " << duration.count() << " ms");
+    BOOST_TEST(arr.get_size() == 1100);
+}
+
+BOOST_AUTO_TEST_CASE(BENCHMARK_DeleteAt, * boost::unit_test::label("benchmark"))
+{
+    Mass arr;
+    for (int i = 0; i < 5000; ++i) {
+        arr.push_back("elem_" + std::to_string(i));
+    }
+    
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    for (int i = 0; i < 1000; ++i) {
+        arr.del_at(arr.get_size() / 2);
+    }
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    
+    BOOST_TEST_MESSAGE("del_at x1000 (middle): " << duration.count() << " ms");
+    BOOST_TEST(arr.get_size() == 4000);
+}
+
+BOOST_AUTO_TEST_CASE(BENCHMARK_GetAt, * boost::unit_test::label("benchmark"))
+{
+    Mass arr;
+    for (int i = 0; i < 5000; ++i) {
+        arr.push_back("elem_" + std::to_string(i));
+    }
+    
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    for (int i = 0; i < 100000; ++i) {
+        std::string val = arr.get_at(i % arr.get_size());
+    }
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    
+    BOOST_TEST_MESSAGE("get_at x100000: " << duration.count() << " ms");
+}
+
+BOOST_AUTO_TEST_CASE(BENCHMARK_MixedOperations, * boost::unit_test::label("benchmark"))
+{
+    auto start = std::chrono::high_resolution_clock::now();
+    
+    Mass arr;
+    for (int i = 0; i < 1000; ++i) {
+        arr.push_back("elem_" + std::to_string(i));
+    }
+    
+    for (int i = 0; i < 500; ++i) {
+        arr.insert_at(arr.get_size() / 2, "new_" + std::to_string(i));
+        arr.del_at(0);
+        arr.replace_at(arr.get_size() - 1, "modified");
+    }
+    
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    
+    BOOST_TEST_MESSAGE("mixed operations (insert+delete+replace x500): " << duration.count() << " ms");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

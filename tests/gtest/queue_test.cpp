@@ -2,6 +2,7 @@
 #include "../sd/queue/queue.hpp"
 #include <sstream>
 #include <string>
+#include <chrono>
 
 // Вспомогательная функция для перехвата вывода print()
 std::string capturePrint(const Queue& q) {
@@ -75,4 +76,24 @@ TEST(QueueTest, StressTest) {
         q.pop();
     }
     EXPECT_TRUE(q.is_empty());
+}
+
+// ===== BENCHMARKS =====
+TEST(QueueBench, BENCHMARK_Queue_Push) {
+    auto start = std::chrono::high_resolution_clock::now();
+    Queue q;
+    for (int i = 0; i < 50000; ++i) q.push("elem_" + std::to_string(i));
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "\npush x50000: " << ms << " ms\n";
+}
+
+TEST(QueueBench, BENCHMARK_Queue_PushPop) {
+    Queue q;
+    for (int i = 0; i < 10000; ++i) q.push("elem_" + std::to_string(i));
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < 5000; ++i) { q.pop(); q.push("new_" + std::to_string(i)); }
+    auto end = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    std::cout << "\npush/pop x5000: " << ms << " ms\n";
 }
