@@ -3,9 +3,39 @@ package datastructures
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"testing"
 	"time"
 )
+
+// FailingReader fails after N bytes
+type FailingReader struct {
+	data []byte
+	pos  int
+	fail int
+}
+
+func NewFailingReader(data []byte, failAt int) *FailingReader {
+	return &FailingReader{
+		data: data,
+		pos:  0,
+		fail: failAt,
+	}
+}
+
+func (fr *FailingReader) Read(p []byte) (n int, err error) {
+	if fr.pos >= fr.fail {
+		return 0, io.EOF
+	}
+	if fr.pos+len(p) > fr.fail {
+		n = fr.fail - fr.pos
+	} else {
+		n = len(p)
+	}
+	copy(p, fr.data[fr.pos:fr.pos+n])
+	fr.pos += n
+	return
+}
 
 // ========== ARRAY TESTS ==========
 // Additional tests for better coverage
@@ -2021,6 +2051,130 @@ func TestHashTableSerializeAddRemovePattern(t *testing.T) {
 		if !ht2.Find(fmt.Sprintf("item_%d", i)) {
 			t.Errorf("expected to find item_%d", i)
 		}
+	}
+}
+
+// ========== QUEUE AND STACK ADDITIONAL COVERAGE TESTS ==========
+
+func TestQueueLargeItems(t *testing.T) {
+	q := NewQueue()
+	for i := 0; i < 100; i++ {
+		q.Push(fmt.Sprintf("item_%d_with_longer_name", i))
+	}
+
+	var buf bytes.Buffer
+	if err := q.Serialize(&buf); err != nil {
+		t.Fatalf("serialize error: %v", err)
+	}
+
+	q2 := NewQueue()
+	if err := q2.Deserialize(&buf); err != nil {
+		t.Fatalf("deserialize error: %v", err)
+	}
+
+	if q2.Size() != 100 {
+		t.Errorf("expected size 100, got %d", q2.Size())
+	}
+
+	for i := 0; i < 100; i++ {
+		val, err := q2.Front()
+		if err != nil || val != fmt.Sprintf("item_%d_with_longer_name", i) {
+			t.Errorf("expected item_%d, got %s", i, val)
+		}
+		q2.Pop()
+	}
+}
+
+func TestStackLargeItems(t *testing.T) {
+	s := NewStack()
+	for i := 0; i < 100; i++ {
+		s.Push(fmt.Sprintf("item_%d_with_longer_name", i))
+	}
+
+	var buf bytes.Buffer
+	if err := s.Serialize(&buf); err != nil {
+		t.Fatalf("serialize error: %v", err)
+	}
+
+	s2 := NewStack()
+	if err := s2.Deserialize(&buf); err != nil {
+		t.Fatalf("deserialize error: %v", err)
+	}
+
+	if s2.Size() != 100 {
+		t.Errorf("expected size 100, got %d", s2.Size())
+	}
+
+	for i := 99; i >= 0; i-- {
+		val, err := s2.Top()
+		if err != nil || val != fmt.Sprintf("item_%d_with_longer_name", i) {
+			t.Errorf("expected item_%d, got %s", i, val)
+		}
+		s2.Pop()
+	}
+}
+
+func TestQueueSerializeMultiline(t *testing.T) {
+	q := NewQueue()
+	q.Push("line1")
+	q.Push("line2\nwith\nnewlines")
+	q.Push("line3")
+
+	var buf bytes.Buffer
+	if err := q.Serialize(&buf); err != nil {
+		t.Fatalf("serialize error: %v", err)
+	}
+
+	q2 := NewQueue()
+	if err := q2.Deserialize(&buf); err != nil {
+		t.Fatalf("deserialize error: %v", err)
+	}
+
+	if q2.Size() != 3 {
+		t.Errorf("expected size 3, got %d", q2.Size())
+	}
+}
+
+func TestStackSerializeMultiline(t *testing.T) {
+	s := NewStack()
+	s.Push("line1")
+	s.Push("line2\nwith\nnewlines")
+	s.Push("line3")
+
+	var buf bytes.Buffer
+	if err := s.Serialize(&buf); err != nil {
+		t.Fatalf("serialize error: %v", err)
+	}
+
+	s2 := NewStack()
+	if err := s2.Deserialize(&buf); err != nil {
+		t.Fatalf("deserialize error: %v", err)
+	}
+
+	if s2.Size() != 3 {
+		t.Errorf("expected size 3, got %d", s2.Size())
+	}
+}
+
+func TestQueueDeserializeError(t *testing.T) {
+	// Test error handling in deserialize
+	badData := []byte("not a number\n")
+	fr := NewFailingReader(badData, len(badData))
+
+	q := NewQueue()
+	if err := q.Deserialize(fr); err == nil {
+		t.Error("expected error on invalid size")
+	}
+}
+
+func TestStackDeserializeError(t *testing.T) {
+	// Test error handling in deserialize
+	badData := []byte("not a number\n")
+	fr := NewFailingReader(badData, len(badData))
+
+	s := NewStack()
+	if err := s.Deserialize(fr); err == nil {
+		t.Error("expected error on invalid size")
 	}
 }
 

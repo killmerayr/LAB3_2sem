@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go Coverage - Detailed Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        header {
+            background: #0d47a1;
+            padding: 15px 20px;
+            border-bottom: 1px solid #444;
+        }
+        header h1 {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        .file-list {
+            width: 350px;
+            border-right: 1px solid #444;
+            overflow-y: auto;
+            background: #252526;
+        }
+        .file-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #3e3e42;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        .file-item:hover {
+            background: #2d2d30;
+        }
+        .file-item.active {
+            background: #0d47a1;
+            border-left: 3px solid #42a5f5;
+        }
+        .file-name {
+            font-size: 0.9em;
+        }
+        .file-coverage {
+            font-size: 0.85em;
+            color: #7cb342;
+            font-weight: bold;
+        }
+        .file-coverage.low {
+            color: #f57f17;
+        }
+        .file-coverage.verylow {
+            color: #d32f2f;
+        }
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .stats-bar {
+            background: #2d2d30;
+            padding: 10px 20px;
+            border-bottom: 1px solid #444;
+            display: flex;
+            gap: 30px;
+            font-size: 0.9em;
+        }
+        .stat {
+            display: flex;
+            gap: 8px;
+        }
+        .stat-label {
+            color: #858585;
+        }
+        .stat-value {
+            color: #42a5f5;
+            font-weight: bold;
+        }
+        .functions-table {
+            flex: 1;
+            overflow-y: auto;
+            background: #1e1e1e;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead {
+            position: sticky;
+            top: 0;
+            background: #2d2d30;
+            border-bottom: 2px solid #444;
+        }
+        th {
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: bold;
+            color: #42a5f5;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-right: 1px solid #444;
+        }
+        th:last-child {
+            border-right: none;
+        }
+        td {
+            padding: 10px 15px;
+            border-bottom: 1px solid #3e3e42;
+            border-right: 1px solid #3e3e42;
+            font-size: 0.9em;
+        }
+        td:last-child {
+            border-right: none;
+        }
+        tr:hover {
+            background: #2d2d30;
+        }
+        .function-name {
+            color: #ce9178;
+            font-weight: bold;
+        }
+        .coverage-bar {
+            display: inline-block;
+            height: 6px;
+            border-radius: 3px;
+            min-width: 50px;
+            background: #444;
+            position: relative;
+            overflow: hidden;
+        }
+        .coverage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #42a5f5, #7cb342);
+            border-radius: 3px;
+        }
+        .coverage-fill.full {
+            background: linear-gradient(90deg, #4caf50, #7cb342);
+        }
+        .coverage-fill.high {
+            background: linear-gradient(90deg, #66bb6a, #7cb342);
+        }
+        .coverage-fill.medium {
+            background: linear-gradient(90deg, #fdd835, #f9a825);
+        }
+        .coverage-fill.low {
+            background: linear-gradient(90deg, #ef5350, #e53935);
+        }
+        .coverage-percent {
+            margin-left: 8px;
+            font-weight: bold;
+            min-width: 50px;
+        }
+        .coverage-percent.high {
+            color: #4caf50;
+        }
+        .coverage-percent.medium {
+            color: #fdd835;
+        }
+        .coverage-percent.low {
+            color: #ef5350;
+        }
+        .empty-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #858585;
+            font-size: 1.1em;
+        }
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📊 Go Data Structures - Detailed Coverage Report (89.0%)</h1>
+    </header>
+    
+    <div class="container">
+        <div class="file-list" id="fileList"></div>
+        <div class="content">
+            <div class="stats-bar">
+                <div class="stat">
+                    <span class="stat-label">File Coverage:</span>
+                    <span class="stat-value" id="fileCoverage">-</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Functions:</span>
+                    <span class="stat-value" id="functionCount">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Total Statements:</span>
+                    <span class="stat-value">89.0%</span>
+                </div>
+            </div>
+            <div class="functions-table" id="functionsTable"></div>
+        </div>
+    </div>
+
+    <script>
+        const data = {
+            'array.go': {
+                coverage: '88.9%',
+                functions: [
+                    { name: 'NewArray', line: 16, coverage: '100.0%' },
+                    { name: 'IsEmpty', line: 25, coverage: '100.0%' },
+                    { name: 'Reserve', line: 30, coverage: '83.3%' },
+                    { name: 'PushBack', line: 41, coverage: '100.0%' },
+                    { name: 'InsertAt', line: 54, coverage: '100.0%' },
+                    { name: 'DelAt', line: 76, coverage: '100.0%' },
+                    { name: 'GetAt', line: 89, coverage: '100.0%' },
+                    { name: 'ReplaceAt', line: 97, coverage: '100.0%' },
+                    { name: 'GetSize', line: 106, coverage: '100.0%' },
+                    { name: 'Serialize', line: 111, coverage: '66.7%' },
+                    { name: 'Deserialize', line: 131, coverage: '80.0%' },
+                ]
+            },
+            'avl_tree.go': {
+                coverage: '89.7%',
+                functions: [
+                    { name: 'NewAVLTree', line: 22, coverage: '100.0%' },
+                    { name: 'Insert', line: 27, coverage: '100.0%' },
+                    { name: 'insert', line: 31, coverage: '100.0%' },
+                    { name: 'Search', line: 71, coverage: '100.0%' },
+                    { name: 'search', line: 75, coverage: '100.0%' },
+                    { name: 'getHeight', line: 91, coverage: '100.0%' },
+                    { name: 'getBalance', line: 98, coverage: '66.7%' },
+                    { name: 'rotateLeft', line: 105, coverage: '100.0%' },
+                    { name: 'rotateRight', line: 118, coverage: '100.0%' },
+                    { name: 'max', line: 131, coverage: '100.0%' },
+                    { name: 'Serialize', line: 139, coverage: '100.0%' },
+                    { name: 'serializeNode', line: 143, coverage: '66.7%' },
+                    { name: 'Deserialize', line: 169, coverage: '100.0%' },
+                    { name: 'deserializeNode', line: 176, coverage: '76.5%' },
+                ]
+            },
+            'doubly_list.go': {
+                coverage: '91.2%',
+                functions: [
+                    { name: 'NewDoublyList', line: 25, coverage: '100.0%' },
+                    { name: 'IsEmpty', line: 34, coverage: '100.0%' },
+                    { name: 'GetSize', line: 39, coverage: '100.0%' },
+                    { name: 'PushBack', line: 44, coverage: '100.0%' },
+                    { name: 'PushFront', line: 58, coverage: '100.0%' },
+                    { name: 'Find', line: 72, coverage: '100.0%' },
+                    { name: 'GetAt', line: 84, coverage: '83.3%' },
+                    { name: 'Del', line: 96, coverage: '100.0%' },
+                    { name: 'Serialize', line: 119, coverage: '75.0%' },
+                    { name: 'Deserialize', line: 137, coverage: '81.2%' },
+                ]
+            },
+            'hash_table.go': {
+                coverage: '86.7%',
+                functions: [
+                    { name: 'NewHashTable', line: 17, coverage: '100.0%' },
+                    { name: 'Add', line: 29, coverage: '100.0%' },
+                    { name: 'Find', line: 44, coverage: '100.0%' },
+                    { name: 'Remove', line: 49, coverage: '100.0%' },
+                    { name: 'GetSize', line: 59, coverage: '100.0%' },
+                    { name: 'GetCapacity', line: 64, coverage: '100.0%' },
+                    { name: 'Rehash', line: 69, coverage: '100.0%' },
+                    { name: 'Hash', line: 75, coverage: '100.0%' },
+                    { name: 'Serialize', line: 82, coverage: '66.7%' },
+                    { name: 'Deserialize', line: 102, coverage: '78.6%' },
+                ]
+            },
+            'list.go': {
+                coverage: '88.7%',
+                functions: [
+                    { name: 'NewList', line: 24, coverage: '100.0%' },
+                    { name: 'IsEmpty', line: 33, coverage: '100.0%' },
+                    { name: 'GetSize', line: 38, coverage: '100.0%' },
+                    { name: 'PushBack', line: 43, coverage: '100.0%' },
+                    { name: 'PushFront', line: 56, coverage: '100.0%' },
+                    { name: 'Find', line: 69, coverage: '100.0%' },
+                    { name: 'GetAt', line: 81, coverage: '83.3%' },
+                    { name: 'Del', line: 93, coverage: '88.9%' },
+                    { name: 'Serialize', line: 123, coverage: '75.0%' },
+                    { name: 'Deserialize', line: 141, coverage: '81.2%' },
+                ]
+            },
+            'queue.go': {
+                coverage: '87.1%',
+                functions: [
+                    { name: 'NewQueue', line: 16, coverage: '100.0%' },
+                    { name: 'IsEmpty', line: 23, coverage: '100.0%' },
+                    { name: 'Push', line: 28, coverage: '100.0%' },
+                    { name: 'Pop', line: 33, coverage: '100.0%' },
+                    { name: 'Front', line: 42, coverage: '100.0%' },
+                    { name: 'Size', line: 50, coverage: '100.0%' },
+                    { name: 'Serialize', line: 55, coverage: '66.7%' },
+                    { name: 'Deserialize', line: 71, coverage: '85.7%' },
+                ]
+            },
+            'stack.go': {
+                coverage: '88.2%',
+                functions: [
+                    { name: 'NewStack', line: 16, coverage: '100.0%' },
+                    { name: 'IsEmpty', line: 23, coverage: '100.0%' },
+                    { name: 'Push', line: 28, coverage: '100.0%' },
+                    { name: 'Pop', line: 33, coverage: '100.0%' },
+                    { name: 'Top', line: 42, coverage: '100.0%' },
+                    { name: 'Size', line: 50, coverage: '100.0%' },
+                    { name: 'Serialize', line: 55, coverage: '66.7%' },
+                    { name: 'Deserialize', line: 71, coverage: '88.2%' },
+                ]
+            }
+        };
+
+        function getColorClass(coverage) {
+            const pct = parseFloat(coverage);
+            if (pct === 100) return 'full';
+            if (pct >= 90) return 'high';
+            if (pct >= 75) return 'medium';
+            return 'low';
+        }
+
+        function getCoverageColor(coverage) {
+            const pct = parseFloat(coverage);
+            if (pct >= 90) return 'high';
+            if (pct >= 75) return 'medium';
+            return 'low';
+        }
+
+        function loadFile(filename) {
+            const fileData = data[filename];
+            const fileCoverageEl = document.getElementById('fileCoverage');
+            const functionCountEl = document.getElementById('functionCount');
+            const functionsTableEl = document.getElementById('functionsTable');
+
+            fileCoverageEl.textContent = fileData.coverage;
+            functionCountEl.textContent = fileData.functions.length;
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Line</th>
+                            <th>Function</th>
+                            <th colspan="2">Coverage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            fileData.functions.forEach(fn => {
+                const colorClass = getColorClass(fn.coverage);
+                const colorCls = getCoverageColor(fn.coverage);
+                const width = parseFloat(fn.coverage);
+                html += `
+                    <tr>
+                        <td>${fn.line}</td>
+                        <td><span class="function-name">${fn.name}</span></td>
+                        <td>
+                            <div style="display: flex; align-items: center;">
+                                <div class="coverage-bar">
+                                    <div class="coverage-fill ${colorClass}" style="width: ${width}%"></div>
+                                </div>
+                                <span class="coverage-percent ${colorCls}">${fn.coverage}</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            functionsTableEl.innerHTML = html;
+        }
+
+        // Initialize file list
+        const fileListEl = document.getElementById('fileList');
+        Object.keys(data).forEach((filename, index) => {
+            const fileEl = document.createElement('div');
+            fileEl.className = `file-item ${index === 0 ? 'active' : ''}`;
+            fileEl.innerHTML = `
+                <span class="file-name">${filename}</span>
+                <span class="file-coverage ${getCoverageColor(data[filename].coverage)}">${data[filename].coverage}</span>
+            `;
+            fileEl.onclick = () => {
+                document.querySelectorAll('.file-item').forEach(el => el.classList.remove('active'));
+                fileEl.classList.add('active');
+                loadFile(filename);
+            };
+            fileListEl.appendChild(fileEl);
+        });
+
+        // Load first file
+        loadFile(Object.keys(data)[0]);
+    </script>
+</body>
+</html>

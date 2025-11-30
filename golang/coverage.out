@@ -258,7 +258,7 @@ datastructures/pkg/datastructures/queue.go:67.2,67.12 1 1
 datastructures/pkg/datastructures/queue.go:71.48,78.21 3 1
 datastructures/pkg/datastructures/queue.go:78.21,80.3 1 0
 datastructures/pkg/datastructures/queue.go:81.2,83.16 3 1
-datastructures/pkg/datastructures/queue.go:83.16,85.3 1 0
+datastructures/pkg/datastructures/queue.go:83.16,85.3 1 1
 datastructures/pkg/datastructures/queue.go:88.2,88.28 1 1
 datastructures/pkg/datastructures/queue.go:88.28,89.22 1 1
 datastructures/pkg/datastructures/queue.go:89.22,91.4 1 0
@@ -283,7 +283,7 @@ datastructures/pkg/datastructures/stack.go:67.2,67.12 1 1
 datastructures/pkg/datastructures/stack.go:71.48,78.21 3 1
 datastructures/pkg/datastructures/stack.go:78.21,80.3 1 0
 datastructures/pkg/datastructures/stack.go:81.2,83.16 3 1
-datastructures/pkg/datastructures/stack.go:83.16,85.3 1 0
+datastructures/pkg/datastructures/stack.go:83.16,85.3 1 1
 datastructures/pkg/datastructures/stack.go:88.2,89.28 2 1
 datastructures/pkg/datastructures/stack.go:89.28,90.22 1 1
 datastructures/pkg/datastructures/stack.go:90.22,92.4 1 0

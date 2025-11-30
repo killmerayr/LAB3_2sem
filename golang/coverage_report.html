@@ -61,13 +61,13 @@
 				
 				<option value="file2">datastructures/pkg/datastructures/doubly_list.go (91.2%)</option>
 				
-				<option value="file3">datastructures/pkg/datastructures/hash_table.go (80.0%)</option>
+				<option value="file3">datastructures/pkg/datastructures/hash_table.go (86.7%)</option>
 				
 				<option value="file4">datastructures/pkg/datastructures/list.go (88.7%)</option>
 				
-				<option value="file5">datastructures/pkg/datastructures/queue.go (83.9%)</option>
+				<option value="file5">datastructures/pkg/datastructures/queue.go (87.1%)</option>
 				
-				<option value="file6">datastructures/pkg/datastructures/stack.go (85.3%)</option>
+				<option value="file6">datastructures/pkg/datastructures/stack.go (88.2%)</option>
 				
 				</select>
 			</div>
@@ -692,7 +692,7 @@ func (ht *HashTable) Rehash() <span class="cov8" title="1">{
 }</span>
 
 // Hash вычисляет хеш для ключа
-func (ht *HashTable) Hash(key string) uint64 <span class="cov0" title="0">{
+func (ht *HashTable) Hash(key string) uint64 <span class="cov8" title="1">{
         h := fnv.New64a()
         h.Write([]byte(key))
         return h.Sum64() % uint64(ht.capacity)
@@ -1001,7 +1001,7 @@ func (q *Queue) Deserialize(r io.Reader) error <span class="cov8" title="1">{
         }</span>
         <span class="cov8" title="1">sizeStr := strings.TrimSpace(scanner.Text())
         size, err := strconv.Atoi(sizeStr)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return err
         }</span>
 
@@ -1100,7 +1100,7 @@ func (s *Stack) Deserialize(r io.Reader) error <span class="cov8" title="1">{
         }</span>
         <span class="cov8" title="1">sizeStr := strings.TrimSpace(scanner.Text())
         size, err := strconv.Atoi(sizeStr)
-        if err != nil </span><span class="cov0" title="0">{
+        if err != nil </span><span class="cov8" title="1">{
                 return err
         }</span>
 
