@@ -1,0 +1,29 @@
+@startuml Stack
+
+class Stack {
+  - top_node: SNode*
+  ---
+  + Stack()
+  + ~Stack()
+  + is_empty(): bool
+  + push(val: string): void
+  + pop(): void
+  + top(): string
+  + print(): void
+  + serialize(out: ostream): void
+  + deserialize(in: istream): void
+}
+
+class SNode {
+  data: std::string
+  next: SNode*
+}
+
+Stack o-- SNode : contains
+
+note right of Stack
+  Стек (LIFO)
+  реализация через список
+end note
+
+@enduml

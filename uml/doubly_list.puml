@@ -1,0 +1,41 @@
+@startuml DoublyList
+
+class DoublyList {
+  - head: DNode*
+  - tail: DNode*
+  ---
+  + DoublyList()
+  + ~DoublyList()
+  + is_empty(): bool
+  + get_size(): int
+  + find(key: string): DNode*
+  + push_back(val: string): void
+  + push_front(val: string): void
+  + insert_after(key: string, val: string): void
+  + insert_before(key: string, val: string): void
+  + del(val: string): void
+  + del_head(): void
+  + del_tail(): void
+  + del_after(key: string): void
+  + del_before(key: string): void
+  + get_at(index: int): DNode*
+  + print_forward(): void
+  + print_backward(): void
+  + serialize(out: ostream): void
+  + deserialize(in: istream): void
+}
+
+class DNode {
+  data: std::string
+  next: DNode*
+  prev: DNode*
+}
+
+DoublyList o-- DNode : contains
+
+note right of DoublyList
+  Двусвязный список
+  навигация вперёд и назад
+end note
+
+@enduml

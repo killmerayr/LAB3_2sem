@@ -1,0 +1,50 @@
+@startuml AVL
+
+class AVL {
+  - root: AVLNode*
+  ---
+  + AVL()
+  + ~AVL()
+  + insert(val: int): void
+  + remove(val: int): void
+  + search(val: int): AVLNode*
+  + addTree(other_root: AVLNode*): void
+  + print_inorder(): void
+  + print_preorder(): void
+  + print_postorder(): void
+  + print_lvlorder(): void
+  + getRoot(): AVLNode*
+  + serialize(out: ostream): void
+  + deserialize(in: istream): void
+  - getHeight(n: AVLNode*): int
+  - updateHeight(n: AVLNode*): void
+  - getBalance(n: AVLNode*): int
+  - leftRotate(x: AVLNode*): AVLNode*
+  - rightRotate(y: AVLNode*): AVLNode*
+  - transplant(u: AVLNode*, v: AVLNode*): void
+  - findMin(n: AVLNode*): AVLNode*
+  - insert(node: AVLNode*, val: int, parent: AVLNode*): AVLNode*
+  - remove(node: AVLNode*, val: int): AVLNode*
+}
+
+class AVLNode {
+  val: int
+  left: AVLNode*
+  right: AVLNode*
+  parent: AVLNode*
+  height: int
+  ---
+  + AVLNode(val: int, parent: AVLNode* = nullptr, height: int = 1)
+}
+
+AVL o-- AVLNode : contains
+AVLNode --> AVLNode : left
+AVLNode --> AVLNode : right
+AVLNode --> AVLNode : parent
+
+note right of AVL
+  Самобалансирующееся дерево поиска
+  высота влево - высота вправо <= 1
+end note
+
+@enduml

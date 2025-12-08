@@ -1,0 +1,29 @@
+@startuml Array
+
+class Mass {
+  - data: std::string*
+  - size: int
+  - capacity: int
+  ---
+  + Mass()
+  + ~Mass()
+  + is_empty(): bool
+  + reserve(new_capacity: int): void
+  + push_back(val: string): void
+  + insert_at(index: int, val: string): void
+  + del_at(index: int): void
+  + get_at(index: int): string
+  + replace_at(index: int, val: string): void
+  + get_size(): int
+  + print(): void
+  + read(): void
+  + serialize(out: ostream): void
+  + deserialize(in: istream): void
+}
+
+note right of Mass
+  Динамический массив строк
+  с автоматическим расширением
+end note
+
+@enduml

@@ -1,0 +1,39 @@
+@startuml List
+
+class List {
+  - head: LNode*
+  - tail: LNode*
+  ---
+  + List()
+  + ~List()
+  + is_empty(): bool
+  + get_size(): int
+  + find(key: string): LNode*
+  + push_back(val: string): void
+  + push_front(val: string): void
+  + insert_after(key: string, val: string): void
+  + insert_before(key: string, val: string): void
+  + del(val: string): void
+  + del_head(): void
+  + del_tail(): void
+  + del_after(key: string): void
+  + del_before(key: string): void
+  + get_at(index: int): LNode*
+  + print(): void
+  + serialize(out: ostream): void
+  + deserialize(in: istream): void
+}
+
+class LNode {
+  data: std::string
+  next: LNode*
+}
+
+List o-- LNode : contains
+
+note right of List
+  Однонаправленный список
+  с поддержкой поиска и вставки
+end note
+
+@enduml

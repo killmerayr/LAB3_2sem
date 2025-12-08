@@ -1,0 +1,35 @@
+@startuml HashTable
+
+enum Status {
+  Empty
+  Occupied
+  Deleted
+}
+
+class HashTable {
+  - table: vector<pair<string, Status>>
+  - capacity: int
+  - size: int
+  - deleted_count: int
+  ---
+  + HashTable(initial_capacity: int = 8)
+  + Add(key: string): bool
+  + Find(key: string): bool
+  + Delete(key: string): bool
+  + get_size(): int
+  + get_capacity(): int
+  - Hash(key: string): unsigned long
+  - Rehash(): void
+  - Resize(): void
+  + serialize(out: ostream): void
+  + deserialize(in: istream): void
+}
+
+HashTable --> Status : uses
+
+note right of HashTable
+  Хеш-таблица с открытой адресацией
+  динамическое расширение
+end note
+
+@enduml

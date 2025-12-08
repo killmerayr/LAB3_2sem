@@ -1,0 +1,30 @@
+@startuml Queue
+
+class Queue {
+  - first: QNode*
+  - last: QNode*
+  ---
+  + Queue()
+  + ~Queue()
+  + is_empty(): bool
+  + push(value: string): void
+  + pop(): void
+  + front(): string
+  + print(): void
+  + serialize(out: ostream): void
+  + deserialize(in: istream): void
+}
+
+class QNode {
+  val: std::string
+  next: QNode*
+}
+
+Queue o-- QNode : contains
+
+note right of Queue
+  Очередь (FIFO)
+  реализация через список
+end note
+
+@enduml
