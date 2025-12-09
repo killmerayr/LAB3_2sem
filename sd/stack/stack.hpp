@@ -1,30 +1,30 @@
 #pragma once
-#include <string>
-#include <ostream>
 #include <istream>
+#include <ostream>
+#include <string>
 #include <vector>
 
 class Stack {
 private:
-    struct SNode {
-        std::string data;
-        SNode* next;
-        SNode(const std::string& val) : data(val), next(nullptr) {}
-    };
+  struct SNode {
+    std::string data;
+    SNode *next;
+    SNode(const std::string &val) : data(val), next(nullptr) {}
+  };
 
-    SNode* top_node; // указатель на вершину стека
+  SNode *top_node; // указатель на вершину стека
 
 public:
-    Stack();
-    ~Stack();
+  Stack();
+  ~Stack();
 
-    bool is_empty() const;           // проверить пустоту
-    void push(const std::string& val);  // положить элемент на стек
-    void pop();                          // удалить верхний элемент
-    std::string top() const;             // получить верхний элемент
-    void print() const;                  // вывести стек
-    
-    // Текстовая сериализация и десериализация
-    void serialize(std::ostream& out) const;
-    void deserialize(std::istream& in);
+  bool is_empty() const;             // проверить пустоту
+  void push(const std::string &val); // положить элемент на стек
+  void pop();                        // удалить верхний элемент
+  std::string top() const;           // получить верхний элемент
+  void print() const;                // вывести стек
+
+  // Текстовая сериализация и десериализация
+  void serialize(std::ostream &out) const;
+  void deserialize(std::istream &in);
 };

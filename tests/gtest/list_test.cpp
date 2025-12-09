@@ -141,6 +141,71 @@ TEST(ListTest, EdgeCases) {
     EXPECT_TRUE(lst.is_empty());
 }
 
+// ===== SERIALIZATION TESTS =====
+TEST(ListTest, SerializationBasic) {
+    List lst;
+    lst.push_back("alpha");
+    lst.push_back("beta");
+    lst.push_back("gamma");
+    
+    std::stringstream ss;
+    lst.serialize(ss);
+    
+    List lst2;
+    lst2.deserialize(ss);
+    
+    EXPECT_EQ(lst2.get_size(), 3);
+    EXPECT_EQ(lst2.get_at(0)->data, "alpha");
+    EXPECT_EQ(lst2.get_at(1)->data, "beta");
+    EXPECT_EQ(lst2.get_at(2)->data, "gamma");
+}
+
+TEST(ListTest, SerializationEmpty) {
+    List lst;
+    std::stringstream ss;
+    lst.serialize(ss);
+    
+    List lst2;
+    lst2.deserialize(ss);
+    EXPECT_TRUE(lst2.is_empty());
+}
+
+TEST(ListTest, SerializationLargeList) {
+    List lst;
+    for (int i = 0; i < 100; ++i) {
+        lst.push_back("elem_" + std::to_string(i));
+    }
+    
+    std::stringstream ss;
+    lst.serialize(ss);
+    
+    List lst2;
+    lst2.deserialize(ss);
+    
+    EXPECT_EQ(lst2.get_size(), 100);
+    EXPECT_EQ(lst2.get_at(0)->data, "elem_0");
+    EXPECT_EQ(lst2.get_at(50)->data, "elem_50");
+    EXPECT_EQ(lst2.get_at(99)->data, "elem_99");
+}
+
+TEST(ListTest, SerializationSpecialChars) {
+    List lst;
+    lst.push_back("hello world");
+    lst.push_back("123!@#");
+    lst.push_back("");
+    
+    std::stringstream ss;
+    lst.serialize(ss);
+    
+    List lst2;
+    lst2.deserialize(ss);
+    
+    EXPECT_EQ(lst2.get_size(), 3);
+    EXPECT_EQ(lst2.get_at(0)->data, "hello world");
+    EXPECT_EQ(lst2.get_at(1)->data, "123!@#");
+    EXPECT_EQ(lst2.get_at(2)->data, "");
+}
+
 // ===== BENCHMARKS =====
 TEST(ListBench, BENCHMARK_List_PushBack) {
     auto start = std::chrono::high_resolution_clock::now();

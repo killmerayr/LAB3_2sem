@@ -65,7 +65,7 @@ gtest_coverage:
 	$(CXX) $(CXXFLAGS) $(GTEST_INCLUDE) $(SRC) $(GTEST_TESTS) -o runGTests $(GTEST_LIBS)
 	LLVM_PROFILE_FILE=$(PWD)/coverage.profraw ./runGTests
 	@echo "📝 Генерация отчёта покрытия..."
-	llvm-profdata merge -sparse $(PWD)/coverage.profdata -o coverage.profdata
+	llvm-profdata merge -sparse $(PWD)/coverage.profraw -o coverage.profdata
 	llvm-cov show ./runGTests \
 		-instr-profile=coverage.profdata \
 		-format=html \

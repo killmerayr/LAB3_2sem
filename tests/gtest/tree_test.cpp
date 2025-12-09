@@ -129,6 +129,93 @@ TEST(AVLTest, StressRandomInsertRemove) {
     EXPECT_EQ(in, (std::vector<int>{10,25,30,35,45,50}));
 }
 
+// ===== SERIALIZATION TESTS =====
+TEST(AVLTest, SerializationBasic) {
+    AVL t;
+    t.insert(50);
+    t.insert(30);
+    t.insert(70);
+    t.insert(20);
+    t.insert(40);
+    t.insert(60);
+    t.insert(80);
+    
+    std::stringstream ss;
+    t.serialize(ss);
+    
+    AVL t2;
+    t2.deserialize(ss);
+    
+    // Проверяем что все элементы на месте
+    EXPECT_NE(t2.search(50), nullptr);
+    EXPECT_NE(t2.search(30), nullptr);
+    EXPECT_NE(t2.search(70), nullptr);
+    EXPECT_NE(t2.search(20), nullptr);
+    EXPECT_NE(t2.search(40), nullptr);
+    EXPECT_NE(t2.search(60), nullptr);
+    EXPECT_NE(t2.search(80), nullptr);
+    
+    // Проверяем что inorder обход совпадает
+    auto in1 = capturePrint(t, &AVL::print_inorder);
+    auto in2 = capturePrint(t2, &AVL::print_inorder);
+    EXPECT_EQ(in1, in2);
+}
+
+TEST(AVLTest, SerializationEmpty) {
+    AVL t;
+    std::stringstream ss;
+    t.serialize(ss);
+    
+    AVL t2;
+    t2.deserialize(ss);
+    
+    EXPECT_EQ(t2.search(1), nullptr);
+}
+
+TEST(AVLTest, SerializationLargeTree) {
+    AVL t;
+    for (int i = 0; i < 50; ++i) {
+        t.insert(i);
+    }
+    
+    std::stringstream ss;
+    t.serialize(ss);
+    
+    AVL t2;
+    t2.deserialize(ss);
+    
+    for (int i = 0; i < 50; ++i) {
+        EXPECT_NE(t2.search(i), nullptr);
+    }
+    
+    auto in1 = capturePrint(t, &AVL::print_inorder);
+    auto in2 = capturePrint(t2, &AVL::print_inorder);
+    EXPECT_EQ(in1, in2);
+}
+
+TEST(AVLTest, SerializationBalanceProperty) {
+    AVL t;
+    for (int i = 1; i <= 50; ++i) t.insert(i);
+    
+    std::stringstream ss;
+    t.serialize(ss);
+    
+    AVL t2;
+    t2.deserialize(ss);
+    
+    // Проверяем что AVL property сохранено после десериализации
+    std::function<void(AVLNode*)> dfs = [&](AVLNode* n){
+        if (!n) return;
+        int balance = n->left ? n->left->height : 0;
+        balance -= n->right ? n->right->height : 0;
+        EXPECT_GE(balance, -1);
+        EXPECT_LE(balance, 1);
+        dfs(n->left);
+        dfs(n->right);
+    };
+    dfs(t2.getRoot());
+}
+
 // ===== BENCHMARKS =====
 TEST(TreeBench, BENCHMARK_Tree_Insert) {
     auto start = std::chrono::high_resolution_clock::now();
